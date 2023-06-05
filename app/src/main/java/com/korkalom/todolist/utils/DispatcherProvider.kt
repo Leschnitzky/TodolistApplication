@@ -1,4 +1,4 @@
-package com.korkalom.baseapplication.utils
+package com.korkalom.todolist.utils
 
 import kotlinx.coroutines.CoroutineDispatcher
 

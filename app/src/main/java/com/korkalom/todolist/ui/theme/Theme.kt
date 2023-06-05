@@ -1,4 +1,4 @@
-package com.korkalom.baseapplication.ui.theme
+package com.korkalom.todolist.ui.theme
 
 import android.app.Activity
 import android.os.Build

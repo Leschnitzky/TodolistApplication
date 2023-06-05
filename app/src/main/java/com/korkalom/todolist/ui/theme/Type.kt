@@ -1,4 +1,4 @@
-package com.korkalom.baseapplication.ui.theme
+package com.korkalom.todolist.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

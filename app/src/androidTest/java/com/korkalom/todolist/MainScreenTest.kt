@@ -1,11 +1,9 @@
-package com.korkalom.baseapplication
+package com.korkalom.todolist
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.korkalom.baseapplication.ui.theme.BaseApplicationTheme
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 
@@ -30,7 +28,6 @@ class MainScreenTest {
     val composeTestRule by lazy { createAndroidComposeRule<MainActivity>() }
     @get:Rule
     val rule: RuleChain = RuleChain.outerRule(hiltRule).around(composeTestRule)
-
 
     @Before
     fun init(){

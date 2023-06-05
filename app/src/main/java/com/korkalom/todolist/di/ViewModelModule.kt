@@ -1,11 +1,10 @@
-package com.korkalom.baseapplication.di
+package com.korkalom.todolist.di
 
-import com.korkalom.baseapplication.utils.DispatcherProvider
+import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 @Module

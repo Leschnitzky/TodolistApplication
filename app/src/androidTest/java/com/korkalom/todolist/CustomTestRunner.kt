@@ -1,4 +1,4 @@
-package com.korkalom.baseapplication
+package com.korkalom.todolist
 
 import android.app.Application
 import android.content.Context

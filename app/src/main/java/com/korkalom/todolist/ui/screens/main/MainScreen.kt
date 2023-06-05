@@ -1,4 +1,4 @@
-package com.korkalom.baseapplication.ui.screens.main
+package com.korkalom.todolist.ui.screens.main
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
