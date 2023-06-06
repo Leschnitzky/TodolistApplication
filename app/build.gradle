@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace 'com.korkalom.baseapplication'
+    namespace 'com.korkalom.todolist'
     compileSdk 33
 
     defaultConfig {

@@ -1,4 +1,4 @@
-package com.korkalom.todolist.ui.screens.main
+package com.korkalom.todolist.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +25,7 @@ public class MainScreenVM @Inject constructor(
     val uiState : StateFlow<MainScreenState> = _uiState.asStateFlow()
 
 
-    val intentChannel = Channel<MainScreenIntent>(Channel.UNLIMITED)
+    val intentChannel = Channel<HomeScreenIntent>(Channel.UNLIMITED)
 
     init {
         handleIntent()
@@ -39,11 +39,11 @@ public class MainScreenVM @Inject constructor(
                 })
                 when(it) {
 
-                    is MainScreenIntent.UpdatedText -> {
+                    is HomeScreenIntent.UpdatedText -> {
                         _uiState.value = MainScreenState(it.newText)
                     }
 
-                    is MainScreenIntent.ClickedButton -> {
+                    is HomeScreenIntent.ClickedButton -> {
                         _uiState.value = MainScreenState("")
                     }
                 }
