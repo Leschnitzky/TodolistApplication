@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">BaseApplication</string>
-    <string name="sample_text">Loren Ipsum\n</string>
+    <string name="sample_text">Lorem Ipsum\n</string>
 </resources>

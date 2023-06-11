@@ -2,6 +2,7 @@ package com.korkalom.todolist.ui.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,8 +24,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.korkalom.todolist.R
+import com.korkalom.todolist.utils.BTN
+import com.korkalom.todolist.utils.IMG
+import com.korkalom.todolist.utils.PAGE_HOME
+import com.korkalom.todolist.utils.TXT
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,27 +49,6 @@ fun MainScreen(
                     .heightIn(min = 60.dp)
                     .weight(0.5f)
             )
-        Text(
-            text = "Productivity graph section",
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .border(width = 1.dp, color = MaterialTheme.colorScheme.primary)
-        )
-        Text(
-            text = "Tasks",
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .border(width = 1.dp, color = MaterialTheme.colorScheme.primary)
-        )
-        Text(
-            text = "Today's plan",
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        )
-
     }
 }
 
@@ -72,15 +58,13 @@ fun WelcomeUserSection(
     modifier: Modifier
 ) {
     Row(modifier = modifier.padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween) {
         Image(
             painter = painterResource(id = androidx.core.R.drawable.ic_call_decline_low),
-            contentDescription = "just an image",
+            contentDescription = "${PAGE_HOME}_${IMG}",
             modifier = Modifier
                 .weight(1f)
-                .size(50.dp)
-                .widthIn(max = 50.dp)
                 .clip(CircleShape)
                 .border(
                     width = 1.dp,
@@ -88,11 +72,7 @@ fun WelcomeUserSection(
                     shape = CircleShape
                 )
         )
-        TextSection(
-            Modifier.weight(6f)
-        )
-
-
+        TextSection(Modifier.weight(6f))
     }
 }
 
@@ -100,16 +80,19 @@ fun WelcomeUserSection(
 fun TextSection(modifier: Modifier) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(0.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            modifier = Modifier.wrapContentSize(),
+            modifier = Modifier.wrapContentSize().semantics {
+                                                            this.contentDescription = "${PAGE_HOME}_${TXT}_1"
+            },
             text = LocalContext.current.getString(R.string.sample_text),
             style = MaterialTheme.typography.titleSmall
         )
         Text(
-            modifier = Modifier.wrapContentSize(),
+            modifier = Modifier.wrapContentSize().semantics {
+                this.contentDescription = "${PAGE_HOME}_${TXT}_2"
+            },
             text = LocalContext.current.getString(R.string.sample_text),
             style = MaterialTheme.typography.bodySmall.copy(Color.Gray),
         )

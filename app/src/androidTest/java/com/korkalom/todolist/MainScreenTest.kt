@@ -2,8 +2,13 @@ package com.korkalom.todolist
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.korkalom.todolist.utils.BTN
+import com.korkalom.todolist.utils.IMG
+import com.korkalom.todolist.utils.PAGE_HOME
+import com.korkalom.todolist.utils.TXT
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 
@@ -36,7 +41,17 @@ class MainScreenTest {
     }
 
     @Test
-    fun displayClearButton() {
-        composeTestRule.onNodeWithText("Clear").assertIsDisplayed()
+    fun displayUserSection() {
+        composeTestRule.onNodeWithContentDescription("${PAGE_HOME}_${IMG}").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("${PAGE_HOME}_${TXT}_1").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("${PAGE_HOME}_${TXT}_2").assertIsDisplayed()
     }
+
+
+    @Test
+    fun displayLazyColumn(){
+
+    }
+
+
 }

@@ -33,7 +33,7 @@ fun MainContent(){
         Scaffold(
             bottomBar = {
                         MyBottomBar(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier,
                         )
             },
             content = { padding -> run {
