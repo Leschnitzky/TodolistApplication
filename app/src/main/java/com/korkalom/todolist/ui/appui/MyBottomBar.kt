@@ -34,22 +34,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import com.korkalom.todolist.ui.screens.home.HomeScreenIntent
+import com.korkalom.todolist.ui.screens.home.HomeScreenVM
 import com.korkalom.todolist.utils.BOTTOM_NAV
+import com.korkalom.todolist.utils.BTN
 import com.korkalom.todolist.utils.FAB
 
+data class BottomBarActionButtons(val icon : ImageVector, val contentDescription : String, val shouldShow : Boolean)
 
-val buttonMap: Map<ImageVector, String> =
-    mapOf(
-        Icons.Filled.Home to "homeBtn1",
-        Icons.Default.DateRange to "calendarBtn2",
-        Icons.Default.Person to "contactBtn4",
-        Icons.Default.Settings to "settingsBtn5",
-    )
+
+val actionButtonList : List<BottomBarActionButtons> = listOf(
+    BottomBarActionButtons(Icons.Filled.Home, "${BOTTOM_NAV}_${BTN}_home", true),
+    BottomBarActionButtons(Icons.Default.DateRange, "${BOTTOM_NAV}_${BTN}_cal", true),
+    BottomBarActionButtons(Icons.Default.Person, "${BOTTOM_NAV}_${BTN}_contact", false),
+    BottomBarActionButtons(Icons.Default.Settings, "${BOTTOM_NAV}_${BTN}_settings", true)
+)
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyBottomBar(modifier: Modifier) = BottomAppBar(
+fun MyBottomBar(modifier: Modifier, viewModel : HomeScreenVM) = BottomAppBar(
     modifier = modifier.height(80.dp),
     tonalElevation = 22.dp,
     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -67,7 +72,9 @@ fun MyBottomBar(modifier: Modifier) = BottomAppBar(
             FloatingActionButton(modifier = Modifier.padding(
                 horizontal = 16.dp,
                 vertical = 12.dp
-            ).size(48.dp), onClick = { /*TODO*/ }) {
+            ).size(48.dp), onClick = { viewModel.intentChannel.trySend(
+                HomeScreenIntent.ClickedAdd
+            )}) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "${BOTTOM_NAV}_${FAB}",
@@ -83,9 +90,11 @@ fun MyBottomBar(modifier: Modifier) = BottomAppBar(
 fun BottomBarIconButton(
     modifier: Modifier,
     vector: ImageVector,
-    description: String
+    description: String,
 ) {
-    IconButton(onClick = { /*TODO*/ }, modifier = modifier.size(48.dp)) {
+    IconButton(onClick = {
+
+    }, modifier = modifier.size(48.dp)) {
         Icon(
             imageVector = vector,
             contentDescription = description,
@@ -96,12 +105,14 @@ fun BottomBarIconButton(
 
 @Composable
 fun ActionButtonsSection(modifier: Modifier) {
-    for (pair in buttonMap) {
-        BottomBarIconButton(
-            modifier = Modifier,
-            vector = pair.key,
-            description = pair.value
-        )
+    for (actionButton in actionButtonList) {
+        if(actionButton.shouldShow){
+            BottomBarIconButton(
+                modifier = Modifier,
+                vector = actionButton.icon,
+                description = actionButton.contentDescription
+            )
+        }
     }
 }
 

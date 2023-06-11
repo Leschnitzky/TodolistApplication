@@ -34,6 +34,7 @@ fun MainContent(){
             bottomBar = {
                         MyBottomBar(
                             modifier = Modifier,
+                            viewModel = viewModel()
                         )
             },
             content = { padding -> run {
