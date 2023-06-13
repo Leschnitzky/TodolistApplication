@@ -1,8 +1,9 @@
 package com.korkalom.todolist.ui.screens.home
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,18 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
@@ -35,25 +32,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.R
 import com.korkalom.todolist.utils.BTN
 import com.korkalom.todolist.utils.PAGE_HOME
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
     modifier: Modifier, viewModel: HomeScreenVM
@@ -66,15 +62,15 @@ fun MainScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-            Card(
-                modifier = Modifier
-                    .padding(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                WelcomeUserSection()
-            }
+        Card(
+            modifier = Modifier
+                .padding(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            WelcomeUserSection()
+        }
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -83,7 +79,31 @@ fun MainScreen(
             verticalArrangement = Arrangement.spacedBy(0.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            CardWithTitle(title = "Today", numberOfTasks = uiState.todayTasks.size) {
+            CardWithTitle(
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            viewModel.intentChannel.trySend(
+                                HomeScreenIntent.LongClickedFirstCardWithTitle
+                            )
+                        }
+                    )
+                    .animateContentSize { initialValue, targetValue -> }
+                    .heightIn(
+                        min = dimensionResource(id = R.dimen.card_height_folded),
+                        max = if (uiState.isTodayExpanded) {
+                            dimensionResource(id = R.dimen.card_height_expanded)
+                        } else if(uiState.isTomorrowExpanded || uiState.isUpcomingExpanded){
+                            dimensionResource(id = R.dimen.card_height_folded)
+                        } else {
+                            dimensionResource(id = R.dimen.card_height_normal)
+                        }
+                    ).wrapContentHeight()
+                    .padding(16.dp),
+                title = "Today",
+                numberOfTasks = uiState.upcomingTasks.size,
+            ) {
                 if (uiState.todayTasks.isEmpty()) {
                     Text(text = "No tasks available")
                 } else {
@@ -98,7 +118,32 @@ fun MainScreen(
                     }
                 }
             }
-            CardWithTitle(title = "Tomorrow", numberOfTasks = uiState.tomorrowTasks.size) {
+            CardWithTitle(
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            viewModel.intentChannel.trySend(
+                                HomeScreenIntent.LongClickedSecondCardWithTitle
+                            )
+                        }
+                    )
+                    .animateContentSize { initialValue, targetValue -> }
+                    .heightIn(
+                        min = dimensionResource(id = R.dimen.card_height_folded),
+                        max = if (uiState.isTomorrowExpanded) {
+                            dimensionResource(id = R.dimen.card_height_expanded)
+                        } else if(uiState.isTodayExpanded || uiState.isUpcomingExpanded){
+                            dimensionResource(id = R.dimen.card_height_folded)
+                        } else {
+                            dimensionResource(id = R.dimen.card_height_normal)
+                        }
+                    )
+                    .wrapContentHeight()
+                    .padding(16.dp),
+                title = "Tommorow",
+                numberOfTasks = uiState.upcomingTasks.size,
+            ) {
                 if (uiState.tomorrowTasks.isEmpty()) {
                     Text(text = "No tasks available")
                 } else {
@@ -113,7 +158,32 @@ fun MainScreen(
                     }
                 }
             }
-            CardWithTitle(title = "Upcoming", numberOfTasks = uiState.upcomingTasks.size) {
+            CardWithTitle(
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            viewModel.intentChannel.trySend(
+                                HomeScreenIntent.LongClickedThirdCardWithTitle
+                            )
+                        }
+                    )
+                    .animateContentSize { initialValue, targetValue -> }
+                    .heightIn(
+                        min = dimensionResource(id = R.dimen.card_height_folded),
+                        max = if (uiState.isUpcomingExpanded) {
+                            dimensionResource(id = R.dimen.card_height_expanded)
+                        } else if(uiState.isTodayExpanded || uiState.isTomorrowExpanded){
+                            dimensionResource(id = R.dimen.card_height_folded)
+                        } else {
+                            dimensionResource(id = R.dimen.card_height_normal)
+                        }
+                    )
+                    .wrapContentHeight()
+                    .padding(16.dp),
+                title = "Upcoming",
+                numberOfTasks = uiState.upcomingTasks.size,
+            ) {
                 if (uiState.upcomingTasks.isEmpty()) {
                     Text(text = "No tasks available")
                 } else {
@@ -234,8 +304,14 @@ fun WelcomeUserSection(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CardWithTitle(title: String, numberOfTasks: Int, content: @Composable () -> Unit) {
+fun CardWithTitle(
+    modifier: Modifier,
+    title: String,
+    numberOfTasks: Int,
+    content: @Composable () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -246,11 +322,7 @@ fun CardWithTitle(title: String, numberOfTasks: Int, content: @Composable () -> 
         )
     ) {
         Column(
-            Modifier
-                .animateContentSize { initialValue, targetValue ->  }
-                .heightIn(min = 80.dp, max = 200.dp)
-                .wrapContentHeight()
-                .padding(16.dp)
+            modifier
         ) {
             Row(
                 modifier = Modifier

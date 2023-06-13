@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_height_expanded">350dp</dimen>
+    <dimen name="card_height_folded">50dp</dimen>
+    <dimen name="card_height_normal">140dp</dimen>
+</resources>
