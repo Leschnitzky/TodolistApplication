@@ -1,40 +1,27 @@
 package com.korkalom.todolist.ui.appui
 
-import android.provider.ContactsContract.CommonDataKinds.Im
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import com.korkalom.todolist.ui.screens.home.HomeScreenIntent
 import com.korkalom.todolist.ui.screens.home.HomeScreenVM
 import com.korkalom.todolist.utils.BOTTOM_NAV
@@ -63,7 +50,7 @@ fun MyBottomBar(modifier: Modifier, viewModel : HomeScreenVM) = BottomAppBar(
         modifier = modifier.padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ActionButtonsSection(Modifier.weight(1f))
+        ActionButtonsSection(Modifier.weight(1f), viewModel)
         Row(
             modifier = Modifier
                 .weight(1f),
@@ -73,7 +60,7 @@ fun MyBottomBar(modifier: Modifier, viewModel : HomeScreenVM) = BottomAppBar(
                 horizontal = 16.dp,
                 vertical = 12.dp
             ).size(48.dp), onClick = { viewModel.intentChannel.trySend(
-                HomeScreenIntent.ClickedAdd
+                HomeScreenIntent.ClickedAdd("Test")
             )}) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -91,9 +78,12 @@ fun BottomBarIconButton(
     modifier: Modifier,
     vector: ImageVector,
     description: String,
+    viewModel: HomeScreenVM,
 ) {
     IconButton(onClick = {
-
+        viewModel.intentChannel.trySend(
+            HomeScreenIntent.ClickedClear
+        )
     }, modifier = modifier.size(48.dp)) {
         Icon(
             imageVector = vector,
@@ -104,10 +94,11 @@ fun BottomBarIconButton(
 }
 
 @Composable
-fun ActionButtonsSection(modifier: Modifier) {
+fun ActionButtonsSection(modifier: Modifier, viewModel: HomeScreenVM) {
     for (actionButton in actionButtonList) {
         if(actionButton.shouldShow){
             BottomBarIconButton(
+                viewModel = viewModel,
                 modifier = Modifier,
                 vector = actionButton.icon,
                 description = actionButton.contentDescription

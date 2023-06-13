@@ -1,6 +1,7 @@
 package com.korkalom.todolist.ui.screens.home
 
 data class HomeScreenState(
+    val index : Int = 0 ,
     val name : String = "John Doe!",
     val todayTasks : ArrayList<String> = arrayListOf(),
     val tomorrowTasks : ArrayList<String> = arrayListOf(),
@@ -8,7 +9,7 @@ data class HomeScreenState(
 ) {
 
     override fun toString(): String {
-        return "HomeScreenState(name='$name', todayTasks=$todayTasks, tomorrowTasks=$tomorrowTasks, upcomingTasks=$upcomingTasks)"
+        return "HomeScreenState#$index(name='$name', todayTasks=$todayTasks, tomorrowTasks=$tomorrowTasks, upcomingTasks=$upcomingTasks)"
     }
 
 
