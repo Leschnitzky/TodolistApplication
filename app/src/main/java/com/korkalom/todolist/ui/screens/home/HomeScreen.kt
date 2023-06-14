@@ -1,7 +1,9 @@
 package com.korkalom.todolist.ui.screens.home
 
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,27 +30,39 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.core.view.MenuItemCompat.getContentDescription
 import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.R
 import com.korkalom.todolist.utils.BTN
 import com.korkalom.todolist.utils.PAGE_HOME
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -55,6 +70,7 @@ fun MainScreen(
     modifier: Modifier, viewModel: HomeScreenVM
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+    var cardFolded = false
     Timber.d(message = {
         "$uiState"
     })
@@ -93,16 +109,24 @@ fun MainScreen(
                     .heightIn(
                         min = dimensionResource(id = R.dimen.card_height_folded),
                         max = if (uiState.isTodayExpanded) {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_expanded)
-                        } else if(uiState.isTomorrowExpanded || uiState.isUpcomingExpanded){
+                        } else if (uiState.isTomorrowExpanded || uiState.isUpcomingExpanded) {
+                            cardFolded = true
                             dimensionResource(id = R.dimen.card_height_folded)
                         } else {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_normal)
                         }
-                    ).wrapContentHeight()
-                    .padding(16.dp),
+                    )
+                    .wrapContentHeight()
+                    .padding(16.dp)
+                    .semantics {
+                        contentDescription = "${PAGE_HOME}_$TODAY_CARD"
+                    },
                 title = "Today",
                 numberOfTasks = uiState.upcomingTasks.size,
+                isCardFolded = cardFolded
             ) {
                 if (uiState.todayTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -110,6 +134,9 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.todayTasks.size) {
                             CheckboxListItem(
+                                modifier = Modifier.semantics {
+                                    contentDescription = "${TODAY_CARD}_${LIST_ITEM}_#${it}"
+                                },
                                 title = uiState.todayTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
@@ -132,17 +159,24 @@ fun MainScreen(
                     .heightIn(
                         min = dimensionResource(id = R.dimen.card_height_folded),
                         max = if (uiState.isTomorrowExpanded) {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_expanded)
-                        } else if(uiState.isTodayExpanded || uiState.isUpcomingExpanded){
+                        } else if (uiState.isTodayExpanded || uiState.isUpcomingExpanded) {
+                            cardFolded = true
                             dimensionResource(id = R.dimen.card_height_folded)
                         } else {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_normal)
                         }
                     )
                     .wrapContentHeight()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .semantics {
+                        contentDescription = "${PAGE_HOME}_$TOMORROW_CARD"
+                    },
                 title = "Tommorow",
                 numberOfTasks = uiState.upcomingTasks.size,
+                isCardFolded = cardFolded
             ) {
                 if (uiState.tomorrowTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -150,6 +184,9 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.tomorrowTasks.size) {
                             CheckboxListItem(
+                                modifier = Modifier.semantics {
+                                    contentDescription = "${TOMORROW_CARD}_${LIST_ITEM}_#${it}"
+                                },
                                 title = uiState.tomorrowTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
@@ -172,17 +209,24 @@ fun MainScreen(
                     .heightIn(
                         min = dimensionResource(id = R.dimen.card_height_folded),
                         max = if (uiState.isUpcomingExpanded) {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_expanded)
-                        } else if(uiState.isTodayExpanded || uiState.isTomorrowExpanded){
+                        } else if (uiState.isTodayExpanded || uiState.isTomorrowExpanded) {
+                            cardFolded = true
                             dimensionResource(id = R.dimen.card_height_folded)
                         } else {
+                            cardFolded = false
                             dimensionResource(id = R.dimen.card_height_normal)
                         }
                     )
                     .wrapContentHeight()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .semantics {
+                        contentDescription = "${PAGE_HOME}_$UPCOMING_CARD"
+                    },
                 title = "Upcoming",
                 numberOfTasks = uiState.upcomingTasks.size,
+                isCardFolded = cardFolded
             ) {
                 if (uiState.upcomingTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -190,6 +234,9 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.upcomingTasks.size) {
                             CheckboxListItem(
+                                modifier = Modifier.semantics {
+                                    contentDescription = "${UPCOMING_CARD}_${LIST_ITEM}_#${it}"
+                                },
                                 title = uiState.upcomingTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
@@ -204,16 +251,35 @@ fun MainScreen(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CheckboxListItem(
+    modifier: Modifier,
     painter: Painter = ColorPainter(color = MaterialTheme.colorScheme.secondary),
     title: String = "Headline",
     supportingText: String = "Supporting text",
 ) {
+
+    var isSelected by remember { mutableStateOf(false) }
+    var showToast by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .selectable(
+                selected = isSelected,
+                onClick = {
+                }
+            ).combinedClickable(
+                onClick = {},
+                onLongClick = {
+                    isSelected = !isSelected
+                }
+            )
+            .background(
+                color = if (isSelected) MaterialTheme.colorScheme.surfaceTint else MaterialTheme.colorScheme.surface
+            ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Icon(
             modifier = Modifier
@@ -239,22 +305,26 @@ fun CheckboxListItem(
                 )
             }
         }
-        Checkbox(
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 24.dp),
-            checked = true,
-            onCheckedChange = {})
+            var isChecked by remember{ mutableStateOf(false) }
+            Checkbox(
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 24.dp),
+                checked = isChecked,
+                onCheckedChange = {isChecked = !isChecked})
     }
 }
 
 
 @Composable
 fun WelcomeUserSection(
+    modifier: Modifier = Modifier.semantics {
+        contentDescription = "${PAGE_HOME}_${WELCOME_CARD}"
+    },
     painter: Painter = ColorPainter(color = MaterialTheme.colorScheme.secondary),
     title: String = "ANON!",
     supportingText: String = "Welcome back,",
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -310,6 +380,7 @@ fun CardWithTitle(
     modifier: Modifier,
     title: String,
     numberOfTasks: Int,
+    isCardFolded: Boolean = false,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -332,10 +403,6 @@ fun CardWithTitle(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                )
                 Row(
                     modifier = Modifier
                         .padding(4.dp)
@@ -343,13 +410,40 @@ fun CardWithTitle(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    NotificationBadge(notificationCount = numberOfTasks)
-
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_filter_alt_24),
-                            contentDescription = "Additional list menues"
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
                         )
+                        NotificationBadge(notificationCount = numberOfTasks)
+                    }
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        var expandedFilterMenu by remember { mutableStateOf(false) }
+                        IconButton(onClick = {
+                            if (!isCardFolded) {
+                                expandedFilterMenu = !expandedFilterMenu
+                            }
+                        }) {
+
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_filter_alt_24),
+                                contentDescription = "${PAGE_HOME}_${FILTER_BTN}"
+                            )
+                        }
+
+                        DropdownMenu(
+                            modifier = Modifier.semantics {
+                                contentDescription = "${PAGE_HOME}_${FILTER_MENU}"
+                            },
+                            expanded = expandedFilterMenu,
+                            onDismissRequest = { expandedFilterMenu = false }) {
+
+                            DropdownMenuItem(text = { Text("By priority") }, onClick = { /*TODO*/ })
+                            DropdownMenuItem(text = { Text("By due date") }, onClick = { /*TODO*/ })
+                            DropdownMenuItem(text = { Text("By name") }, onClick = { /*TODO*/ })
+                        }
                     }
                 }
 

@@ -61,7 +61,7 @@ public class HomeScreenVM @Inject constructor(
                             todayTasks = prev.todayTasks as ArrayList<String>,
                             tomorrowTasks = prev.tomorrowTasks,
                             upcomingTasks = prev.upcomingTasks,
-                            isTodayExpanded = true,
+                            isTodayExpanded = !prev.isTodayExpanded,
                             isTomorrowExpanded = false,
                             isUpcomingExpanded = false
                         )
@@ -76,7 +76,7 @@ public class HomeScreenVM @Inject constructor(
                             tomorrowTasks = prev.tomorrowTasks,
                             upcomingTasks = prev.upcomingTasks,
                             isTodayExpanded = false,
-                            isTomorrowExpanded = true,
+                            isTomorrowExpanded = !prev.isTomorrowExpanded,
                             isUpcomingExpanded = false
                         )
                     }
@@ -91,7 +91,7 @@ public class HomeScreenVM @Inject constructor(
                             upcomingTasks = prev.upcomingTasks,
                             isTodayExpanded = false,
                             isTomorrowExpanded = false,
-                            isUpcomingExpanded = true
+                            isUpcomingExpanded = !prev.isUpcomingExpanded
                         )
                     }
                 }
