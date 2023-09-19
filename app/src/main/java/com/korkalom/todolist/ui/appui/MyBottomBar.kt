@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.korkalom.todolist.ui.screens.home.HomeScreenIntent
@@ -65,7 +66,7 @@ fun MyBottomBar(
     containerColor: Color,
     navController: NavHostController
 ) = BottomAppBar(
-    modifier = modifier.height(80.dp),
+    modifier = modifier.height(80.dp).zIndex(1f),
     tonalElevation = 22.dp,
     containerColor = containerColor,
 ) {

@@ -2,6 +2,7 @@ package com.korkalom.todolist.ui.screens.home
 
 import androidx.compose.material3.SheetState
 import com.korkalom.todolist.R
+import com.korkalom.todolist.model.ErrorHandling
 import com.korkalom.todolist.model.Task
 
 data class HomeScreenState(
@@ -14,7 +15,8 @@ data class HomeScreenState(
     val isTomorrowExpanded: Boolean = false,
     val isUpcomingExpanded: Boolean = false,
     var isSheetExpanded: Boolean = false,
-    val numOfTasksSelected: Int = 0
+    val numOfTasksSelected: Int = 0,
+    val errors: ArrayList<ErrorHandling> = arrayListOf()
 ) {
 
     override fun toString(): String {

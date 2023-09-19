@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,18 +18,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.korkalom.todolist.ui.appui.BOTTOM_SHEET_HEIGHT
+import com.korkalom.todolist.ui.appui.ErrorSnackbarMessage
 import com.korkalom.todolist.ui.appui.MyBottomBar
+import com.korkalom.todolist.ui.appui.MySnackBar
+import com.korkalom.todolist.ui.appui.SNACKBAR_HEIGHT
 import com.korkalom.todolist.ui.screens.home.AddScreen
 import com.korkalom.todolist.ui.screens.daterange.DateRangeScreen
 import com.korkalom.todolist.ui.screens.details.DetailsScreen
@@ -59,6 +67,7 @@ fun MainContent(){
         val navController = rememberNavController()
         val viewModel : HomeScreenVM = viewModel()
         val uiState = viewModel.uiState.collectAsState()
+        val snackbarHostState = remember { SnackbarHostState()}
         val scope = rememberCoroutineScope()
         val state = rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
@@ -71,6 +80,12 @@ fun MainContent(){
             MaterialTheme.colorScheme.primaryContainer
         }
         BottomSheetScaffold(
+            snackbarHost = {
+                Box(modifier = Modifier.zIndex(SNACKBAR_HEIGHT)) {
+                    MySnackBar(snackbarHostState = snackbarHostState)
+
+                }
+            },
             sheetPeekHeight = 0.dp,
             sheetDragHandle = {},
             sheetContent = {
@@ -78,6 +93,7 @@ fun MainContent(){
                     ModalBottomSheet(
                         sheetState = state,
                         modifier = Modifier
+                            .zIndex(BOTTOM_SHEET_HEIGHT)
                             .heightIn(max = 700.dp)
                             .fillMaxSize()
                         ,
@@ -91,7 +107,8 @@ fun MainContent(){
                         },
                     ) {
                     AddScreen(
-                        viewModel
+                        viewModel,
+                        snackbarHostState = snackbarHostState
                     )
                 }
 
@@ -113,12 +130,6 @@ fun MainContent(){
                             MainScreen(
                                 modifier = Modifier.padding(padding),
                                 viewModel = viewModel
-                            )
-                        }
-
-                        composable(Routes.addScreen) {
-                            AddScreen(
-                                viewModel
                             )
                         }
                         composable("detailsScreen") {

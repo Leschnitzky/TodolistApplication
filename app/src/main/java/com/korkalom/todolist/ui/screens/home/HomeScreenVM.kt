@@ -1,7 +1,10 @@
 package com.korkalom.todolist.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.korkalom.todolist.model.Error
+import com.korkalom.todolist.model.ErrorHandling
 import com.korkalom.todolist.model.Task
 import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +44,7 @@ public class HomeScreenVM @Inject constructor(
                     }
 
                     is HomeScreenIntent.ClickedAdd -> {
-                          _uiState.value = uiState.value.copy(isSheetExpanded = true)
+                        _uiState.value = uiState.value.copy(isSheetExpanded = true)
                     }
 
                     is HomeScreenIntent.AddDismissed -> {
@@ -49,12 +52,43 @@ public class HomeScreenVM @Inject constructor(
                     }
 
                     is HomeScreenIntent.AddedNewTask -> {
-                        val currentList = uiState.value.upcomingTasks
-                        currentList.add(homeScreenIntent.task)
-                        _uiState.value.copy(
-                            upcomingTasks = currentList,
-                            isSheetExpanded = false
-                        )
+                        val allErrors : ArrayList<ErrorHandling> = arrayListOf()
+                        if (homeScreenIntent.task.priority == -1) {
+                            allErrors.add(
+                                ErrorHandling(
+                                    Error.NO_PRIORITY_SELECTED, "No priority selected"
+                                )
+                            )
+
+                        }
+                        if (homeScreenIntent.task.title.isEmpty()) {
+                            allErrors.add(
+                                ErrorHandling(
+                                    Error.TITLE_IS_EMPTY, "Title must not be empty"
+                                )
+                            )
+                        }
+                        if (homeScreenIntent.task.description.isEmpty()) {
+                            allErrors.add(
+                                ErrorHandling(
+                                    Error.DESCRIPTION_IS_EMPTY, "Description must not be empty"
+                                )
+                            )
+                        }
+                        Log.d("SERG", "handleIntent: $allErrors")
+
+                        if (allErrors.isEmpty()) {
+                            val currentList = uiState.value.upcomingTasks
+                            currentList.add(homeScreenIntent.task)
+                            _uiState.value = uiState.value.copy(
+                                upcomingTasks = currentList,
+                                isSheetExpanded = false
+                            )
+                        } else {
+                            _uiState.value = uiState.value.copy(
+                                errors = allErrors
+                            )
+                        }
                     }
 
 
