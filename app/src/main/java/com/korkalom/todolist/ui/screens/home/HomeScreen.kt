@@ -70,6 +70,7 @@ fun MainScreen(
     modifier: Modifier, viewModel: HomeScreenVM
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+    val coroutineScope = rememberCoroutineScope()
     var cardFolded = false
     Timber.d(message = {
         "$uiState"
@@ -100,12 +101,14 @@ fun MainScreen(
                     .combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            viewModel.intentChannel.trySend(
-                                HomeScreenIntent.LongClickedFirstCardWithTitle
-                            )
+                            coroutineScope.launch {
+                                viewModel.intentChannel.send(
+                                    HomeScreenIntent.LongClickedFirstCardWithTitle
+                                )
+                            }
                         }
                     )
-                    .animateContentSize { initialValue, targetValue -> }
+                    .animateContentSize()
                     .heightIn(
                         min = dimensionResource(id = R.dimen.card_height_folded),
                         max = if (uiState.isTodayExpanded) {
@@ -125,7 +128,7 @@ fun MainScreen(
                         contentDescription = "${PAGE_HOME}_$TODAY_CARD"
                     },
                 title = "Today",
-                numberOfTasks = uiState.upcomingTasks.size,
+                numberOfTasks = uiState.todayTasks.size,
                 isCardFolded = cardFolded
             ) {
                 if (uiState.todayTasks.isEmpty()) {
@@ -134,10 +137,12 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.todayTasks.size) {
                             CheckboxListItem(
+                                viewModel = viewModel,
                                 modifier = Modifier.semantics {
                                     contentDescription = "${TODAY_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.todayTasks[it]
+                                title = uiState.todayTasks[it].title,
+                                supportingText = uiState.todayTasks[it].date
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -175,7 +180,7 @@ fun MainScreen(
                         contentDescription = "${PAGE_HOME}_$TOMORROW_CARD"
                     },
                 title = "Tommorow",
-                numberOfTasks = uiState.upcomingTasks.size,
+                numberOfTasks = uiState.tomorrowTasks.size,
                 isCardFolded = cardFolded
             ) {
                 if (uiState.tomorrowTasks.isEmpty()) {
@@ -184,10 +189,11 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.tomorrowTasks.size) {
                             CheckboxListItem(
+                                viewModel = viewModel,
                                 modifier = Modifier.semantics {
                                     contentDescription = "${TOMORROW_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.tomorrowTasks[it]
+                                title = uiState.tomorrowTasks[it].title
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -234,10 +240,11 @@ fun MainScreen(
                     LazyColumn {
                         items(uiState.upcomingTasks.size) {
                             CheckboxListItem(
+                                viewModel = viewModel,
                                 modifier = Modifier.semantics {
                                     contentDescription = "${UPCOMING_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.upcomingTasks[it]
+                                title = uiState.upcomingTasks[it].title
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
 
@@ -255,13 +262,13 @@ fun MainScreen(
 @Composable
 fun CheckboxListItem(
     modifier: Modifier,
+    viewModel: HomeScreenVM,
     painter: Painter = ColorPainter(color = MaterialTheme.colorScheme.secondary),
     title: String = "Headline",
     supportingText: String = "Supporting text",
 ) {
 
     var isSelected by remember { mutableStateOf(false) }
-    var showToast by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -269,10 +276,14 @@ fun CheckboxListItem(
                 selected = isSelected,
                 onClick = {
                 }
-            ).combinedClickable(
+            )
+            .combinedClickable(
                 onClick = {},
                 onLongClick = {
                     isSelected = !isSelected
+                    viewModel.intentChannel.trySend(
+                        HomeScreenIntent.LongClickedElement(isSelected)
+                    )
                 }
             )
             .background(

@@ -2,6 +2,7 @@ package com.korkalom.todolist.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.korkalom.todolist.model.Task
 import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,7 +33,7 @@ public class HomeScreenVM @Inject constructor(
 
     private fun handleIntent() {
         viewModelScope.launch(dispatcherProvider.dispatcherIO) {
-            intentChannel.consumeAsFlow().collect { homeScreenIntent ->
+            intentChannel.receiveAsFlow().collect { homeScreenIntent ->
                 when (homeScreenIntent) {
 
                     is HomeScreenIntent.ClickedClear -> {
@@ -39,61 +41,53 @@ public class HomeScreenVM @Inject constructor(
                     }
 
                     is HomeScreenIntent.ClickedAdd -> {
-                        val prev = uiState.value;
-                        val tasks = prev.todayTasks + arrayListOf(homeScreenIntent.title)
-                        _uiState.value = HomeScreenState(
-                            index = prev.index + 1,
-                            name = prev.name,
-                            todayTasks = tasks as ArrayList<String>,
-                            tomorrowTasks = tasks,
-                            upcomingTasks = tasks,
-                            isTodayExpanded = prev.isTodayExpanded,
-                            isTomorrowExpanded = prev.isTomorrowExpanded,
-                            isUpcomingExpanded = prev.isUpcomingExpanded
+                          _uiState.value = uiState.value.copy(isSheetExpanded = true)
+                    }
+
+                    is HomeScreenIntent.AddDismissed -> {
+                        _uiState.value = uiState.value.copy(isSheetExpanded = false)
+                    }
+
+                    is HomeScreenIntent.AddedNewTask -> {
+                        val currentList = uiState.value.upcomingTasks
+                        currentList.add(homeScreenIntent.task)
+                        _uiState.value.copy(
+                            upcomingTasks = currentList,
+                            isSheetExpanded = false
                         )
                     }
 
+
                     HomeScreenIntent.LongClickedFirstCardWithTitle -> {
-                        val prev = uiState.value;
-                        _uiState.value = HomeScreenState(
-                            index = prev.index + 1,
-                            name = prev.name,
-                            todayTasks = prev.todayTasks as ArrayList<String>,
-                            tomorrowTasks = prev.tomorrowTasks,
-                            upcomingTasks = prev.upcomingTasks,
-                            isTodayExpanded = !prev.isTodayExpanded,
+                        _uiState.value = uiState.value.copy(
+                            isTodayExpanded = !uiState.value.isTodayExpanded,
                             isTomorrowExpanded = false,
                             isUpcomingExpanded = false
                         )
                     }
 
                     HomeScreenIntent.LongClickedSecondCardWithTitle -> {
-                        val prev = uiState.value;
-                        _uiState.value = HomeScreenState(
-                            index = prev.index + 1,
-                            name = prev.name,
-                            todayTasks = prev.todayTasks as ArrayList<String>,
-                            tomorrowTasks = prev.tomorrowTasks,
-                            upcomingTasks = prev.upcomingTasks,
+                        _uiState.value = uiState.value.copy(
                             isTodayExpanded = false,
-                            isTomorrowExpanded = !prev.isTomorrowExpanded,
+                            isTomorrowExpanded = !uiState.value.isTomorrowExpanded,
                             isUpcomingExpanded = false
                         )
                     }
 
                     HomeScreenIntent.LongClickedThirdCardWithTitle -> {
-                        val prev = uiState.value;
-                        _uiState.value = HomeScreenState(
-                            index = prev.index + 1,
-                            name = prev.name,
-                            todayTasks = prev.todayTasks as ArrayList<String>,
-                            tomorrowTasks = prev.tomorrowTasks,
-                            upcomingTasks = prev.upcomingTasks,
+                        _uiState.value = uiState.value.copy(
                             isTodayExpanded = false,
                             isTomorrowExpanded = false,
-                            isUpcomingExpanded = !prev.isUpcomingExpanded
+                            isUpcomingExpanded = !uiState.value.isTomorrowExpanded
                         )
                     }
+
+                    is HomeScreenIntent.LongClickedElement -> {
+                        _uiState.value = uiState.value.copy(
+                            numOfTasksSelected = if (homeScreenIntent.selected) uiState.value.numOfTasksSelected + 1 else uiState.value.numOfTasksSelected - 1
+                        )
+                    }
+
                 }
             }
         }

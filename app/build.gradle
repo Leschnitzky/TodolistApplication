@@ -54,18 +54,20 @@ hilt {
 }
 
 def versions = [
-    hilt_version : "2.44",
-    junit_version : "4.13.2",
-    and_junit_version : "1.1.5",
-    espresso_version : "3.5.1",
-    compose_bom_version : "2022.10.00",
-    android_core_version : "1.10.1",
-    kotlin_bom_version : "1.8.0",
-    lifecycle_version : "2.6.1",
-    compose_version : "1.7.2",
-    timber_version : "1.5.1",
-    material3_version : "1.1.0",
-    compose_ui : "1.4.3"
+        hilt_version           : "2.44",
+        junit_version          : "4.13.2",
+        and_junit_version      : "1.1.5",
+        espresso_version       : "3.5.1",
+        compose_bom_version    : "2022.10.00",
+        android_core_version   : "1.10.1",
+        kotlin_bom_version     : "1.8.0",
+        lifecycle_version      : "2.6.1",
+        compose_version        : "1.7.2",
+        timber_version         : "1.5.1",
+        material3_version      : "1.1.0",
+        compose_ui             : "1.4.3",
+        nav_version            : "2.6.0",
+        material_dialog_version: "0.2.9"
 ]
 
 dependencies {
@@ -100,6 +102,10 @@ dependencies {
     androidTestImplementation platform("androidx.compose:compose-bom:${versions.compose_bom_version}")
     androidTestImplementation "com.google.dagger:hilt-android-testing:${versions.hilt_version}"
     kaptAndroidTest "com.google.dagger:hilt-android-compiler:${versions.hilt_version}"
+
+
+    implementation "androidx.navigation:navigation-compose:${versions.nav_version}"
+
 
 //  3rd Party software
     implementation "com.github.ajalt:timberkt:${versions.timber_version}"
