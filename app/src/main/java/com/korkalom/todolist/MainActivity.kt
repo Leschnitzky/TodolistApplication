@@ -1,20 +1,14 @@
 package com.korkalom.todolist
 
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -33,12 +27,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.korkalom.todolist.ui.appui.BOTTOM_SHEET_HEIGHT
-import com.korkalom.todolist.ui.appui.ErrorSnackbarMessage
 import com.korkalom.todolist.ui.appui.MyBottomBar
 import com.korkalom.todolist.ui.appui.MySnackBar
 import com.korkalom.todolist.ui.appui.SNACKBAR_HEIGHT
 import com.korkalom.todolist.ui.screens.home.AddScreen
-import com.korkalom.todolist.ui.screens.daterange.DateRangeScreen
+import com.korkalom.todolist.ui.screens.statistics.StatisticsScreen
 import com.korkalom.todolist.ui.screens.details.DetailsScreen
 import com.korkalom.todolist.ui.screens.home.HomeScreenIntent
 import com.korkalom.todolist.ui.screens.home.HomeScreenVM
@@ -108,7 +101,6 @@ fun MainContent(){
                     ) {
                     AddScreen(
                         viewModel,
-                        snackbarHostState = snackbarHostState
                     )
                 }
 
@@ -121,7 +113,8 @@ fun MainContent(){
                         viewModel = viewModel(),
                         uiState = uiState,
                         containerColor = contColor,
-                        navController = navController
+                        navController = navController,
+                        scope = scope
                     )
                 },
                 content = { padding -> run {
@@ -132,7 +125,7 @@ fun MainContent(){
                                 viewModel = viewModel
                             )
                         }
-                        composable("detailsScreen") {
+                        composable(Routes.detailsScreen) {
                             DetailsScreen(
 
                             )
@@ -142,8 +135,13 @@ fun MainContent(){
 
                             )
                         }
-                        composable(Routes.dateRangeScreen) {
-                            DateRangeScreen(
+                        composable(Routes.statisticsScreen) {
+                            StatisticsScreen(
+
+                            )
+                        }
+                        composable(Routes.editScreen){
+                            DetailsScreen(
 
                             )
                         }

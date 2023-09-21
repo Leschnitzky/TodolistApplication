@@ -28,6 +28,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.composables.materialcolors.MaterialColors
+import com.composables.materialcolors.get
+import com.korkalom.todolist.utils.Routes.Companion.NAV_PREFIX
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,9 +47,32 @@ fun MyAppBar(
 }
 
 
+fun doesActionRequireNavigation(action: String): Boolean {
+    return action.startsWith(NAV_PREFIX)
+}
+
+//Priority Colors
+val HighPrio : Color = MaterialColors.Red[400]
+val MediumPrio : Color = MaterialColors.Yellow[600]
+val LowPrio : Color = MaterialColors.Green[200]
+val NoPrio : Color = MaterialColors.Gray[400]
+
+const val DAY = 24 * 60 * 60 * 1000
+fun getColorByPriority(priority: Int): Color {
+    return when(priority){
+        1 -> HighPrio
+        2 -> MediumPrio
+        3 -> LowPrio
+        4 -> NoPrio
+        else -> NoPrio
+    }
+}
+
+val formatter = SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH)
+
+
 const val SNACKBAR_HEIGHT: Float = 50f
 const val BOTTOM_SHEET_HEIGHT: Float = 2f
-
 @Composable
 fun MySnackBar(snackbarHostState: SnackbarHostState) {
     SnackbarHost(

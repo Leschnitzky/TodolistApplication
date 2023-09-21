@@ -1,11 +1,13 @@
 package com.korkalom.todolist.ui.screens.home
 
+import android.text.format.DateUtils
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.korkalom.todolist.model.Error
 import com.korkalom.todolist.model.ErrorHandling
 import com.korkalom.todolist.model.Task
+import com.korkalom.todolist.ui.appui.DAY
 import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -75,15 +77,40 @@ public class HomeScreenVM @Inject constructor(
                                 )
                             )
                         }
-                        Log.d("SERG", "handleIntent: $allErrors")
+                        if(homeScreenIntent.task.date == null){
+                            allErrors.add(
+                                ErrorHandling(
+                                    Error.DATE_IS_NOT_CHOSEN, "You must choose a date"
+                                )
+                            )
+                        }
 
                         if (allErrors.isEmpty()) {
-                            val currentList = uiState.value.upcomingTasks
-                            currentList.add(homeScreenIntent.task)
-                            _uiState.value = uiState.value.copy(
-                                upcomingTasks = currentList,
-                                isSheetExpanded = false
-                            )
+                            if(DateUtils.isToday(homeScreenIntent.task.date!!)){
+                                val currentList = uiState.value.todayTasks
+                                currentList.add(homeScreenIntent.task)
+                                _uiState.value = uiState.value.copy(
+                                    todayTasks = currentList,
+                                    isSheetExpanded = false
+                                )
+                            } else if(DateUtils.isToday(
+                                    homeScreenIntent.task.date - DAY
+                                    )
+                            ) {
+                                val currentList = uiState.value.tomorrowTasks
+                                currentList.add(homeScreenIntent.task)
+                                _uiState.value = uiState.value.copy(
+                                    tomorrowTasks = currentList,
+                                    isSheetExpanded = false
+                                )
+                            } else {
+                                val currentList = uiState.value.upcomingTasks
+                                currentList.add(homeScreenIntent.task)
+                                _uiState.value = uiState.value.copy(
+                                    upcomingTasks = currentList,
+                                    isSheetExpanded = false
+                                )
+                            }
                         } else {
                             _uiState.value = uiState.value.copy(
                                 errors = allErrors
@@ -118,10 +145,15 @@ public class HomeScreenVM @Inject constructor(
 
                     is HomeScreenIntent.LongClickedElement -> {
                         _uiState.value = uiState.value.copy(
-                            numOfTasksSelected = if (homeScreenIntent.selected) uiState.value.numOfTasksSelected + 1 else uiState.value.numOfTasksSelected - 1
+                            numOfTasksSelected = if (homeScreenIntent.selected) {
+                                uiState.value.numOfTasksSelected + 1
+                            } else {
+                                uiState.value.numOfTasksSelected - 1
+                            }
                         )
                     }
 
+                    HomeScreenIntent.DeleteSelected -> TODO()
                 }
             }
         }

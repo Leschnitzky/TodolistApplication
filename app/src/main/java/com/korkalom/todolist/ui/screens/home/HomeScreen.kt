@@ -3,6 +3,7 @@ package com.korkalom.todolist.ui.screens.home
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -29,6 +31,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -60,6 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.MenuItemCompat.getContentDescription
 import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.R
+import com.korkalom.todolist.ui.appui.formatter
+import com.korkalom.todolist.ui.appui.getColorByPriority
 import com.korkalom.todolist.utils.BTN
 import com.korkalom.todolist.utils.PAGE_HOME
 import kotlinx.coroutines.launch
@@ -142,7 +147,8 @@ fun MainScreen(
                                     contentDescription = "${TODAY_CARD}_${LIST_ITEM}_#${it}"
                                 },
                                 title = uiState.todayTasks[it].title,
-                                supportingText = uiState.todayTasks[it].date
+                                date = formatter.format(uiState.todayTasks[it].date),
+                                priority = uiState.todayTasks[it].priority
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -193,7 +199,8 @@ fun MainScreen(
                                 modifier = Modifier.semantics {
                                     contentDescription = "${TOMORROW_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.tomorrowTasks[it].title
+                                date = formatter.format(uiState.tomorrowTasks[it].date),
+                                priority = uiState.tomorrowTasks[it].priority
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -244,7 +251,9 @@ fun MainScreen(
                                 modifier = Modifier.semantics {
                                     contentDescription = "${UPCOMING_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.upcomingTasks[it].title
+                                title = uiState.upcomingTasks[it].title,
+                                date = formatter.format(uiState.upcomingTasks[it].date),
+                                priority = uiState.upcomingTasks[it].priority
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
 
@@ -265,7 +274,8 @@ fun CheckboxListItem(
     viewModel: HomeScreenVM,
     painter: Painter = ColorPainter(color = MaterialTheme.colorScheme.secondary),
     title: String = "Headline",
-    supportingText: String = "Supporting text",
+    date: String = "Supporting text",
+    priority: Int
 ) {
 
     var isSelected by remember { mutableStateOf(false) }
@@ -295,7 +305,10 @@ fun CheckboxListItem(
         Icon(
             modifier = Modifier
                 .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 8.dp)
-                .size(18.dp), painter = painter, contentDescription = "Test"
+                .size(18.dp)
+                .clip(CircleShape)
+            , painter = painter, contentDescription = "Priority Icon",
+            tint = getColorByPriority(priority),
         )
         Row(
             modifier = Modifier
@@ -310,7 +323,7 @@ fun CheckboxListItem(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = supportingText,
+                    text = date,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
