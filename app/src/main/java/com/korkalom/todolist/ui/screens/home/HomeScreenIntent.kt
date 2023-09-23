@@ -17,5 +17,6 @@ sealed class HomeScreenIntent {
     data class AddedNewTask(val task : Task) : HomeScreenIntent()
 
     object DeleteSelected : HomeScreenIntent()
+    object LoadTasks: HomeScreenIntent()
 
 }

@@ -8,15 +8,16 @@ import com.korkalom.todolist.model.Task
 data class HomeScreenState(
     val index: Int = 0,
     val name: String = "John Doe!",
-    val todayTasks: ArrayList<Task> = arrayListOf(),
-    val tomorrowTasks: ArrayList<Task> = arrayListOf(),
-    val upcomingTasks: ArrayList<Task> = arrayListOf(),
+    val todayTasks: List<Task> = listOf(),
+    val tomorrowTasks: List<Task> = listOf(),
+    val upcomingTasks: List<Task> = listOf(),
+    val selectedTasks: List<Task> = listOf(),
     val isTodayExpanded: Boolean = false,
     val isTomorrowExpanded: Boolean = false,
     val isUpcomingExpanded: Boolean = false,
     var isSheetExpanded: Boolean = false,
     val numOfTasksSelected: Int = 0,
-    val errors: ArrayList<ErrorHandling> = arrayListOf()
+    val errors: List<ErrorHandling> = listOf()
 ) {
 
     override fun toString(): String {

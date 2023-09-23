@@ -4,16 +4,21 @@ import android.text.format.DateUtils
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.model.Error
 import com.korkalom.todolist.model.ErrorHandling
 import com.korkalom.todolist.model.Task
+import com.korkalom.todolist.repository.Repository
+import com.korkalom.todolist.repository.RoomRepositoryImpl
 import com.korkalom.todolist.ui.appui.DAY
 import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -22,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 public class HomeScreenVM @Inject constructor(
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider, private val repository: Repository
 ) : ViewModel() {
 
 
@@ -34,6 +39,46 @@ public class HomeScreenVM @Inject constructor(
 
     init {
         handleIntent()
+        loadValuesFromDB()
+    }
+
+    private fun loadValuesFromDB() {
+        viewModelScope.launch {
+            intentChannel.send(
+                HomeScreenIntent.LoadTasks
+            )
+        }
+    }
+
+    private fun updateUITasks(scope: CoroutineScope) {
+        scope.launch {
+            repository.getAllTasks().also { res ->
+                if (res.errorHandling == null) {
+                    //Task successful
+
+                    val list = res.value.ifEmpty { arrayListOf() }
+
+                    val todayList = list.filter {
+                        DateUtils.isToday(it.date!!)
+                    }
+
+                    val tomorrowList = list.filter {
+                        DateUtils.isToday(it.date!! - DAY)
+                    }
+
+                    val upcomingList = list - (todayList + tomorrowList).toSet()
+
+                    _uiState.value = uiState.value.copy(
+                        todayTasks = todayList,
+                        tomorrowTasks = tomorrowList,
+                        upcomingTasks = upcomingList,
+                        isSheetExpanded = false
+                    )
+                } else {
+                    Timber.d(Throwable(message = res.errorHandling.errorMsg))
+                }
+            }
+        }
     }
 
     private fun handleIntent() {
@@ -54,7 +99,7 @@ public class HomeScreenVM @Inject constructor(
                     }
 
                     is HomeScreenIntent.AddedNewTask -> {
-                        val allErrors : ArrayList<ErrorHandling> = arrayListOf()
+                        val allErrors: ArrayList<ErrorHandling> = arrayListOf()
                         if (homeScreenIntent.task.priority == -1) {
                             allErrors.add(
                                 ErrorHandling(
@@ -77,7 +122,7 @@ public class HomeScreenVM @Inject constructor(
                                 )
                             )
                         }
-                        if(homeScreenIntent.task.date == null){
+                        if (homeScreenIntent.task.date == null) {
                             allErrors.add(
                                 ErrorHandling(
                                     Error.DATE_IS_NOT_CHOSEN, "You must choose a date"
@@ -86,30 +131,21 @@ public class HomeScreenVM @Inject constructor(
                         }
 
                         if (allErrors.isEmpty()) {
-                            if(DateUtils.isToday(homeScreenIntent.task.date!!)){
-                                val currentList = uiState.value.todayTasks
-                                currentList.add(homeScreenIntent.task)
-                                _uiState.value = uiState.value.copy(
-                                    todayTasks = currentList,
-                                    isSheetExpanded = false
-                                )
-                            } else if(DateUtils.isToday(
-                                    homeScreenIntent.task.date - DAY
+                            repository.addTask(homeScreenIntent.task).collect { res ->
+                                val scope = this
+                                if (res.errorHandling == null) {
+                                    with(dispatcherProvider.dispatcherMain){
+                                        updateUITasks(scope)
+                                    }
+                                } else {
+                                    Timber.d(Throwable(message = "GOT HERE!!!"))
+                                    allErrors.add(
+                                        res.errorHandling
                                     )
-                            ) {
-                                val currentList = uiState.value.tomorrowTasks
-                                currentList.add(homeScreenIntent.task)
-                                _uiState.value = uiState.value.copy(
-                                    tomorrowTasks = currentList,
-                                    isSheetExpanded = false
-                                )
-                            } else {
-                                val currentList = uiState.value.upcomingTasks
-                                currentList.add(homeScreenIntent.task)
-                                _uiState.value = uiState.value.copy(
-                                    upcomingTasks = currentList,
-                                    isSheetExpanded = false
-                                )
+                                    _uiState.value = uiState.value.copy(
+                                        errors = allErrors
+                                    )
+                                }
                             }
                         } else {
                             _uiState.value = uiState.value.copy(
@@ -119,7 +155,7 @@ public class HomeScreenVM @Inject constructor(
                     }
 
 
-                    HomeScreenIntent.LongClickedFirstCardWithTitle -> {
+                    is HomeScreenIntent.LongClickedFirstCardWithTitle -> {
                         _uiState.value = uiState.value.copy(
                             isTodayExpanded = !uiState.value.isTodayExpanded,
                             isTomorrowExpanded = false,
@@ -127,7 +163,7 @@ public class HomeScreenVM @Inject constructor(
                         )
                     }
 
-                    HomeScreenIntent.LongClickedSecondCardWithTitle -> {
+                    is HomeScreenIntent.LongClickedSecondCardWithTitle -> {
                         _uiState.value = uiState.value.copy(
                             isTodayExpanded = false,
                             isTomorrowExpanded = !uiState.value.isTomorrowExpanded,
@@ -135,7 +171,7 @@ public class HomeScreenVM @Inject constructor(
                         )
                     }
 
-                    HomeScreenIntent.LongClickedThirdCardWithTitle -> {
+                    is HomeScreenIntent.LongClickedThirdCardWithTitle -> {
                         _uiState.value = uiState.value.copy(
                             isTodayExpanded = false,
                             isTomorrowExpanded = false,
@@ -153,7 +189,17 @@ public class HomeScreenVM @Inject constructor(
                         )
                     }
 
-                    HomeScreenIntent.DeleteSelected -> TODO()
+                    is HomeScreenIntent.DeleteSelected -> {
+
+                    }
+                    is HomeScreenIntent.LoadTasks -> {
+                        viewModelScope.launch {
+                            val scope = this
+                            with(dispatcherProvider.dispatcherIO) {
+                                updateUITasks(scope)
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -7,4 +7,5 @@ enum class Error {
     TITLE_IS_EMPTY,
     DESCRIPTION_IS_EMPTY,
     DATE_IS_NOT_CHOSEN,
+    ROOM_ERROR
 }
