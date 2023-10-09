@@ -67,7 +67,7 @@ fun MainContent(){
             confirmValueChange = { true }
         )
 
-        var contColor : Color = if(uiState.value.numOfTasksSelected > 0){
+        var contColor : Color = if(uiState.value.selectedTasks.isNotEmpty()){
             MaterialTheme.colorScheme.surfaceTint
         } else {
             MaterialTheme.colorScheme.primaryContainer

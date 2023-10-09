@@ -63,10 +63,14 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.MenuItemCompat.getContentDescription
 import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.R
+import com.korkalom.todolist.model.Task
+import com.korkalom.todolist.ui.appui.CardType
+import com.korkalom.todolist.ui.appui.FilterMethod
 import com.korkalom.todolist.ui.appui.formatter
 import com.korkalom.todolist.ui.appui.getColorByPriority
 import com.korkalom.todolist.utils.BTN
 import com.korkalom.todolist.utils.PAGE_HOME
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -134,7 +138,10 @@ fun MainScreen(
                     },
                 title = "Today",
                 numberOfTasks = uiState.todayTasks.size,
-                isCardFolded = cardFolded
+                isCardFolded = cardFolded,
+                scope = coroutineScope,
+                viewModel = viewModel,
+                type = CardType.TODAY
             ) {
                 if (uiState.todayTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -146,9 +153,7 @@ fun MainScreen(
                                 modifier = Modifier.semantics {
                                     contentDescription = "${TODAY_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.todayTasks[it].title,
-                                date = formatter.format(uiState.todayTasks[it].date),
-                                priority = uiState.todayTasks[it].priority
+                                task = uiState.todayTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -187,7 +192,10 @@ fun MainScreen(
                     },
                 title = "Tommorow",
                 numberOfTasks = uiState.tomorrowTasks.size,
-                isCardFolded = cardFolded
+                isCardFolded = cardFolded,
+                scope = coroutineScope,
+                viewModel = viewModel,
+                type = CardType.TOMORROW
             ) {
                 if (uiState.tomorrowTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -199,8 +207,7 @@ fun MainScreen(
                                 modifier = Modifier.semantics {
                                     contentDescription = "${TOMORROW_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                date = formatter.format(uiState.tomorrowTasks[it].date),
-                                priority = uiState.tomorrowTasks[it].priority
+                                task = uiState.tomorrowTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -239,7 +246,10 @@ fun MainScreen(
                     },
                 title = "Upcoming",
                 numberOfTasks = uiState.upcomingTasks.size,
-                isCardFolded = cardFolded
+                isCardFolded = cardFolded,
+                scope = coroutineScope,
+                viewModel = viewModel,
+                type = CardType.UPCOMING
             ) {
                 if (uiState.upcomingTasks.isEmpty()) {
                     Text(text = "No tasks available")
@@ -251,9 +261,7 @@ fun MainScreen(
                                 modifier = Modifier.semantics {
                                     contentDescription = "${UPCOMING_CARD}_${LIST_ITEM}_#${it}"
                                 },
-                                title = uiState.upcomingTasks[it].title,
-                                date = formatter.format(uiState.upcomingTasks[it].date),
-                                priority = uiState.upcomingTasks[it].priority
+                                task = uiState.upcomingTasks[it]
                             )
                             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.secondary)
 
@@ -273,9 +281,7 @@ fun CheckboxListItem(
     modifier: Modifier,
     viewModel: HomeScreenVM,
     painter: Painter = ColorPainter(color = MaterialTheme.colorScheme.secondary),
-    title: String = "Headline",
-    date: String = "Supporting text",
-    priority: Int
+    task: Task
 ) {
 
     var isSelected by remember { mutableStateOf(false) }
@@ -292,7 +298,7 @@ fun CheckboxListItem(
                 onLongClick = {
                     isSelected = !isSelected
                     viewModel.intentChannel.trySend(
-                        HomeScreenIntent.LongClickedElement(isSelected)
+                        HomeScreenIntent.LongClickedElement(task,isSelected)
                     )
                 }
             )
@@ -308,7 +314,7 @@ fun CheckboxListItem(
                 .size(18.dp)
                 .clip(CircleShape)
             , painter = painter, contentDescription = "Priority Icon",
-            tint = getColorByPriority(priority),
+            tint = getColorByPriority(task.priority),
         )
         Row(
             modifier = Modifier
@@ -318,12 +324,12 @@ fun CheckboxListItem(
         ) {
             Column {
                 Text(
-                    text = title,
+                    text = task.title,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = date,
+                    text = formatter.format(task.date),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -405,6 +411,9 @@ fun CardWithTitle(
     title: String,
     numberOfTasks: Int,
     isCardFolded: Boolean = false,
+    scope: CoroutineScope,
+    viewModel: HomeScreenVM,
+    type: CardType,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -464,9 +473,36 @@ fun CardWithTitle(
                             expanded = expandedFilterMenu,
                             onDismissRequest = { expandedFilterMenu = false }) {
 
-                            DropdownMenuItem(text = { Text("By priority") }, onClick = { /*TODO*/ })
-                            DropdownMenuItem(text = { Text("By due date") }, onClick = { /*TODO*/ })
-                            DropdownMenuItem(text = { Text("By name") }, onClick = { /*TODO*/ })
+                            DropdownMenuItem(text = { Text("By priority") }, onClick = {
+                                scope.launch {
+                                    viewModel.intentChannel.trySend(
+                                        HomeScreenIntent.FilterList(FilterMethod(
+                                            FilterMethod.Type.PRIORITY,
+                                            type
+                                        ))
+                                    )
+                                }
+                            })
+                            DropdownMenuItem(text = { Text("By due date") }, onClick = {
+                                scope.launch {
+                                    viewModel.intentChannel.trySend(
+                                        HomeScreenIntent.FilterList(FilterMethod(
+                                            FilterMethod.Type.DATE,
+                                            type
+                                        ))
+                                    )
+                                }
+                            })
+                            DropdownMenuItem(text = { Text("By name") }, onClick = {
+                                scope.launch {
+                                    viewModel.intentChannel.trySend(
+                                        HomeScreenIntent.FilterList(FilterMethod(
+                                            FilterMethod.Type.NAME,
+                                            type
+                                        ))
+                                    )
+                                }
+                            })
                         }
                     }
                 }

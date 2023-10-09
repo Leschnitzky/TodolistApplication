@@ -76,10 +76,10 @@ fun MyBottomBar(
     containerColor = containerColor,
 ) {
     var currentButtonList = actionButtonList
-    if (uiState.value.numOfTasksSelected > 0) {
+    if (uiState.value.selectedTasks.isNotEmpty()) {
         currentButtonList = selectedButtonList
-        currentButtonList[1].shouldShow = uiState.value.numOfTasksSelected <= 1
-        currentButtonList[2].shouldShow = uiState.value.numOfTasksSelected <= 1
+        currentButtonList[1].shouldShow = uiState.value.selectedTasks.size <= 1
+        currentButtonList[2].shouldShow = uiState.value.selectedTasks.size <= 1
     }
     Row(
         modifier = modifier
@@ -112,12 +112,12 @@ fun MyBottomBar(
                        HomeScreenIntent.ClickedAdd
                    )
                 },
-                containerColor = if (uiState.value.numOfTasksSelected > 0) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceTint
+                containerColor = if (uiState.value.selectedTasks.isNotEmpty()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceTint
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "${BOTTOM_NAV}_${FAB}",
-                    tint = if (uiState.value.numOfTasksSelected > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                    tint = if (uiState.value.selectedTasks.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -153,7 +153,7 @@ fun BottomBarIconButton(
         Icon(
             imageVector = vector,
             contentDescription = description,
-            tint = if (state.value.numOfTasksSelected > 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+            tint = if (state.value.selectedTasks.isNotEmpty()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
         )
     }
 }

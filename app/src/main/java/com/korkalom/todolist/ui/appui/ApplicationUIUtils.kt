@@ -47,6 +47,20 @@ fun MyAppBar(
 }
 
 
+data class FilterMethod(val type : Type, val cardType: CardType){
+    enum class Type {
+        DATE,
+        NAME,
+        PRIORITY
+    }
+}
+
+enum class CardType {
+    TODAY,
+    TOMORROW,
+    UPCOMING
+}
+
 fun doesActionRequireNavigation(action: String): Boolean {
     return action.startsWith(NAV_PREFIX)
 }

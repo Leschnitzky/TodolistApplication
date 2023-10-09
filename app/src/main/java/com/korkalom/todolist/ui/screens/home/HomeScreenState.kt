@@ -16,7 +16,6 @@ data class HomeScreenState(
     val isTomorrowExpanded: Boolean = false,
     val isUpcomingExpanded: Boolean = false,
     var isSheetExpanded: Boolean = false,
-    val numOfTasksSelected: Int = 0,
     val errors: List<ErrorHandling> = listOf()
 ) {
 

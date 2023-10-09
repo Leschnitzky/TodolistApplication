@@ -7,6 +7,6 @@ import kotlinx.coroutines.flow.Flow
 interface Repository {
     suspend fun getAllTasks() : CustomResult<List<Task>>
     fun getTaskByID() : Flow<CustomResult<Task>>
-    fun deleteTasks(list: List<Int>) : Flow<CustomResult<String>>
+    fun deleteTasks(list: List<Long>) : Flow<CustomResult<String>>
     fun addTask(task: Task) : Flow<CustomResult<Long>>
 }

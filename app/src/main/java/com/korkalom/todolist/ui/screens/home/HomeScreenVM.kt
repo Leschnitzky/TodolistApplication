@@ -1,16 +1,15 @@
 package com.korkalom.todolist.ui.screens.home
 
 import android.text.format.DateUtils
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.ajalt.timberkt.Timber
 import com.korkalom.todolist.model.Error
 import com.korkalom.todolist.model.ErrorHandling
-import com.korkalom.todolist.model.Task
 import com.korkalom.todolist.repository.Repository
-import com.korkalom.todolist.repository.RoomRepositoryImpl
+import com.korkalom.todolist.ui.appui.CardType
 import com.korkalom.todolist.ui.appui.DAY
+import com.korkalom.todolist.ui.appui.FilterMethod
 import com.korkalom.todolist.utils.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -180,23 +178,121 @@ public class HomeScreenVM @Inject constructor(
                     }
 
                     is HomeScreenIntent.LongClickedElement -> {
+                        val list = uiState.value.selectedTasks.toMutableList()
+                        if(homeScreenIntent.isSelected){
+                            list.add(homeScreenIntent.task)
+                        } else {
+                            list.remove(homeScreenIntent.task)
+                        }
                         _uiState.value = uiState.value.copy(
-                            numOfTasksSelected = if (homeScreenIntent.selected) {
-                                uiState.value.numOfTasksSelected + 1
-                            } else {
-                                uiState.value.numOfTasksSelected - 1
-                            }
+                            selectedTasks = list.toList()
                         )
                     }
 
                     is HomeScreenIntent.DeleteSelected -> {
-
+                        repository.deleteTasks(uiState.value.selectedTasks.map { it.taskID }).apply {
+                            this.collect {
+                                if(it.errorHandling == null){
+                                    _uiState.value = uiState.value.copy(
+                                        selectedTasks = listOf(),
+                                    )
+                                    updateUITasks(scope = viewModelScope)
+                                } else {
+                                    Timber.d(
+                                        Throwable(
+                                            message = it.errorHandling.errorMsg
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                     is HomeScreenIntent.LoadTasks -> {
                         viewModelScope.launch {
                             val scope = this
                             with(dispatcherProvider.dispatcherIO) {
                                 updateUITasks(scope)
+                            }
+                        }
+                    }
+
+                    is HomeScreenIntent.FilterList -> {
+                        when(homeScreenIntent.filterMethod.type){
+                            FilterMethod.Type.PRIORITY -> {
+                                when(homeScreenIntent.filterMethod.cardType){
+                                    CardType.TODAY -> {
+                                        _uiState.value = uiState.value.copy(
+                                           todayTasks = uiState.value.todayTasks.sortedBy {
+                                               it.priority
+                                           }
+                                        )
+                                    }
+                                    CardType.TOMORROW -> {
+                                        _uiState.value = uiState.value.copy(
+                                            tomorrowTasks = uiState.value.tomorrowTasks.sortedBy {
+                                                it.priority
+                                            }
+                                        )
+                                    }
+                                    CardType.UPCOMING -> {
+                                        _uiState.value = uiState.value.copy(
+                                            upcomingTasks = uiState.value.upcomingTasks.sortedBy {
+                                                it.priority
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            FilterMethod.Type.DATE -> {
+                                when(homeScreenIntent.filterMethod.cardType){
+                                    CardType.TODAY -> {
+                                        _uiState.value = uiState.value.copy(
+                                            todayTasks = uiState.value.todayTasks.sortedBy {
+                                                it.date
+                                            }
+                                        )
+                                    }
+                                    CardType.TOMORROW -> {
+                                        _uiState.value = uiState.value.copy(
+                                            tomorrowTasks = uiState.value.tomorrowTasks.sortedBy {
+                                                it.date
+                                            }
+                                        )
+                                    }
+                                    CardType.UPCOMING -> {
+                                        _uiState.value = uiState.value.copy(
+                                            upcomingTasks = uiState.value.upcomingTasks.sortedBy {
+                                                it.date
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            FilterMethod.Type.NAME -> {
+                                when(homeScreenIntent.filterMethod.cardType){
+                                    CardType.TODAY -> {
+                                        _uiState.value = uiState.value.copy(
+                                            todayTasks = uiState.value.todayTasks.sortedBy {
+                                                it.title
+                                            }
+                                        )
+                                    }
+                                    CardType.TOMORROW -> {
+                                        _uiState.value = uiState.value.copy(
+                                            tomorrowTasks = uiState.value.tomorrowTasks.sortedBy {
+                                                it.title
+                                            }
+                                        )
+                                    }
+                                    CardType.UPCOMING -> {
+                                        _uiState.value = uiState.value.copy(
+                                            upcomingTasks = uiState.value.upcomingTasks.sortedBy {
+                                                it.title
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

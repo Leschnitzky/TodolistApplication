@@ -1,18 +1,13 @@
 package com.korkalom.todolist.repository
 
-import androidx.room.CoroutinesRoom
-import androidx.room.RoomDatabase
 import com.korkalom.todolist.model.CustomResult
 import com.korkalom.todolist.model.Error
 import com.korkalom.todolist.model.ErrorHandling
 import com.korkalom.todolist.model.Task
 import com.korkalom.todolist.model.room.TaskDatabase
 import com.korkalom.todolist.model.room.entities.TaskTable
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import java.lang.Exception
 import javax.inject.Inject
 
@@ -41,8 +36,29 @@ class RoomRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override fun deleteTasks(list: List<Int>): Flow<CustomResult<String>> {
-        TODO("Not yet implemented")
+    override fun deleteTasks(list: List<Long>): Flow<CustomResult<String>> {
+        return flow {
+            try {
+                roomDB.taskDao().deleteMultipleTasks(list).also {
+                    emit(
+                        CustomResult(
+                            "Success",
+                            null
+                        )
+                    )
+                }
+            } catch (e :Exception){
+                emit(
+                    CustomResult(
+                        value = "Failed",
+                        ErrorHandling(
+                            Error.ROOM_ERROR,
+                            e.message!!
+                        )
+                    )
+                )
+            }
+        }
     }
 
     override fun addTask(task: Task): Flow<CustomResult<Long>> {

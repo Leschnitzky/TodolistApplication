@@ -22,4 +22,8 @@ interface TaskDao {
 
     @Delete
     suspend fun removeTask(task: TaskTable) : Int
+
+
+    @Query("DELETE FROM TaskTable WHERE taskID IN (:taskIDList)")
+    suspend fun deleteMultipleTasks(taskIDList: List<Long>)
 }
